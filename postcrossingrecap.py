@@ -1,10 +1,10 @@
 import pycountry
 import json
 from emojiflags.lookup import lookup as flag
-from datetime import datetime, timedelta
-import time
+from datetime import datetime
 import os
 from collections import Counter
+import argparse
 
 
 def getYearList(type):
@@ -156,18 +156,34 @@ def createYearRecap(year,lang):
         recap.write(html)
     print(f"Generated ./recap/{year}_recap_{lang}.html")
 
-types = ['received','sent']
+if __name__ == "__main__":
+    types = ['received','sent']
+    parser = argparse.ArgumentParser()
+    parser.add_argument("language", help="input the language you want to create")        
+    options = parser.parse_args()
+    language = options.language
 
-
-
-for type in types:
-    yearlist = getYearList(type)
+    for type in types:
+        yearlist = getYearList(type)
+        for year in yearlist:
+            getYearData(type,year)
+        print(f"————————————————————")
+        
+    yearlist = getYearList("sent")
     for year in yearlist:
-        getYearData(type,year)
-    print(f"————————————————————")
-    
+        createYearRecap(year,language)
 
+    def remove_other_files(directory, keep_files):
+        # 列出目录下的所有文件
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            # 检查文件是否在保留列表中
+            if filename not in keep_files and os.path.isfile(file_path):
+                # 如果不在保留列表中且是文件，则删除
+                os.remove(file_path)
+                # print(f"Deleted: {file_path}")
 
-yearlist = getYearList("sent")
-for year in yearlist:
-    createYearRecap(year,"cn")
+    # 示例调用
+    directory_to_clean = './data'
+    files_to_keep = ['sent.json', 'received.json','.gitkeep']
+    remove_other_files(directory_to_clean, files_to_keep)
