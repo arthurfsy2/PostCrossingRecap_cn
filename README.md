@@ -1,8 +1,5 @@
-# Postcrossing Recap Generator
+# Postcrossing Recap Generator - Chinese Version
 
-Simple script for generating a recap of your Postcrossing year.
-Not affiliated with Postcrossing in any way.
+fork from:https://github.com/cnovel/PostCrossingRecap
 
-Still very WIP.
 
-Keep posting 📨
