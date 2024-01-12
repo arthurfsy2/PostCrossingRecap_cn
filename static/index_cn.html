@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>获取年度总结</title>
+    <title>获取年度回顾</title>
     <link rel="stylesheet" href="./bootstrap.min.css">
 
     <!-- 引入Bootstrap CSS -->
@@ -111,7 +111,7 @@
             </div>
 
 
-            <button id="run-script" class="btn btn-primary mt-3">生成年度总结</button>
+            <button id="run-script" class="btn btn-primary mt-3">生成年度回顾</button>
         </form>
         <div id="file-list-container" class="mt-3">
         </div>
@@ -124,7 +124,7 @@
 
         <div class="col-12 col-md-10 mx-auto"></div>
         <div class="input-group mb-3">
-            <input type="text" class="form-control" id="search-account" placeholder="请输入账号进行查询……">
+            <input type="text" class="form-control" id="search-account" placeholder="请在生成后再进行查询……">
         </div>
     </div>
     <button id="search-files" class="btn btn-primary margin-top-20px">查询</button>
@@ -137,16 +137,17 @@
     </div>
 
 
-
-
     <script>
-
         document.getElementById('run-script').addEventListener('click', function () {
             const runScriptButton = document.getElementById('run-script');
-            const account = document.getElementById('account').value;
+            const account = document.getElementById('account').value.trim();
             const password = document.getElementById('password').value;
             const lang = document.querySelector('input[name="lang"]:checked').value;
-
+            // 检查搜索框内容是否为空
+            if (account === '') {
+                alert('请输入账号');
+                return; // 如果为空，显示提示并退出函数
+            }
             // 禁用按钮并更改按钮文本
             runScriptButton.disabled = true;
             runScriptButton.textContent = '生成中……';
@@ -184,7 +185,7 @@
 
                                     // 恢复按钮状态
                                     runScriptButton.disabled = false;
-                                    runScriptButton.textContent = '生成年度总结';
+                                    runScriptButton.textContent = '生成年度回顾';
                                 });
                         });
                         alert('提示：\n' + data.output);
@@ -192,14 +193,14 @@
                         alert('提示：\n' + data.output);
                         // 如果失败，也恢复按钮状态
                         runScriptButton.disabled = false;
-                        runScriptButton.textContent = '生成年度总结';
+                        runScriptButton.textContent = '生成年度回顾';
                     }
                 }).catch(error => {
                     // 处理网络错误等问题
                     alert('发生错误：\n' + error);
                     // 恢复按钮状态
                     runScriptButton.disabled = false;
-                    runScriptButton.textContent = '生成年度总结';
+                    runScriptButton.textContent = '生成年度回顾';
                 });
         });
 
@@ -238,7 +239,7 @@
 
                     if (matchedFiles.length === 0) {
                         // 如果没有查询到结果，则显示“无查询结果”
-                        searchListContainer.textContent = '"' + searchAccount + '"账号未查询到年度总结，请生成数据。';
+                        searchListContainer.textContent = '"' + searchAccount + '"账号未查询到年度回顾，请生成数据。';
                     } else {
                         // 如果有查询到结果，则显示链接
                         matchedFiles.forEach(file => {
@@ -337,13 +338,14 @@
 
     <!-- 在你的HTML文件中添加这个footer部分 -->
     <footer>
-        <p>注意：本项目与postcrossing官方无关！且本网站不会存储你的个人账号、密码，只会用于数据的生成。如果不需要，建议删除个人文件</p>
+        <p>🛈本项目与postcrossing官方无关！且本网站不会存储你的个人账号、密码，只会用于个人数据的生成。</p>
+        <p>如果不再需要，建议生成后删除个人文件。</p>
         <div class="text-center p-3">
-            由<a class="text-dark" href="https://github.com/arthurfsy2/PostCrossingRecap_cn"
+            由<a class="text-dark fab fa-github" href="https://github.com/arthurfsy2/PostCrossingRecap_cn"
                 target="_blank">arthurfsy2/PostCrossingRecap_cn</a>生成
         </div>
         <div class="text-center p-3">
-            年终总结页面、css样式参考了<a class="text-dark" href="https://github.com/cnovel/PostCrossingRecap"
+            年度回顾页面、css样式参考了<a class="text-dark fab fa-github" href="https://github.com/cnovel/PostCrossingRecap"
                 target="_blank">cnovel/PostCrossingRecap</a>的代码
         </div>
     </footer>
