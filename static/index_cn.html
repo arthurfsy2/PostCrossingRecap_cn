@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>获取年度总结</title>
+    <link rel="stylesheet" href="./bootstrap.min.css">
+
+    <!-- 引入Bootstrap CSS -->
+    <link rel="stylesheet" href="./bootstrap.min.css">
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+
+    <style>
+        /* 在这里添加您的CSS样式 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            text-align: center;
+            font-size: 1.5em;
+            margin: 0;
+            margin-top: 1em;
+        }
+
+        h3 {
+            color: #000000;
+            text-shadow: 0px 0px 16px #ffe476;
+        }
+
+        .margin-top-20px {
+            margin-top: 20px;
+        }
+
+        footer {
+            --mask:
+                radial-gradient(22.36px at 50% 30.00px, #000 99%, #0000 101%) calc(50% - 20px) 0/40px 100%,
+                radial-gradient(22.36px at 50% -20px, #0000 99%, #000 101%) 50% 10px/40px 100% repeat-x;
+            -webkit-mask: var(--mask);
+            mask: var(--mask);
+            background-color: #ffe6b1;
+            padding-top: 20px;
+            padding-bottom: 10px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+
+        .language-switcher {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .language-switcher .dropdown-menu {
+            min-width: 5rem;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- <img src="./recap/src/logo.png" alt="Postcrossing logo" style="width: 50%; height: auto;" /> -->
+    <div class="container mt-3">
+        <!-- 第一部分：生成数据 -->
+        <h3 id="generate-data-title">生成数据</h3>
+        <form>
+            <div class="form-group mt-3">
+
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-user"></i></span>
+                    </div>
+                    <input type="text" class="form-control" id="account" placeholder="请输入postcrossing账号"
+                        aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="form-group mt-3">
+
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon2"><i class="fa fa-lock"></i></span>
+                    </div>
+                    <input type="password" class="form-control" id="password" placeholder="请输入postcrossing密码"
+                        aria-describedby="basic-addon2">
+                </div>
+            </div>
+            <div class="form-group mt-3 text-center">
+
+                <div class="row justify-content-center">
+                    <div class="col-auto">
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input class="custom-control-input" type="radio" name="lang" id="lang-cn" value="cn">
+                            <label class="custom-control-label" for="lang-cn">中文 (cn)</label>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input class="custom-control-input" type="radio" name="lang" id="lang-en" value="en">
+                            <label class="custom-control-label" for="lang-en">英文 (en)</label>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input class="custom-control-input" type="radio" name="lang" id="lang-all" value="all"
+                                checked>
+                            <label class="custom-control-label" for="lang-all">全部（cn+en）</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <button id="run-script" class="btn btn-primary mt-3">生成年度总结</button>
+        </form>
+        <div id="file-list-container" class="mt-3">
+        </div>
+    </div>
+
+    <hr>
+
+    <h3 id="search-data-title">查询数据</h3>
+    <div class="form-group">
+
+        <div class="col-12 col-md-10 mx-auto"></div>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" id="search-account" placeholder="请输入账号进行查询……">
+        </div>
+    </div>
+    <button id="search-files" class="btn btn-primary margin-top-20px">查询</button>
+    <button id="download-files" class="btn btn-success margin-top-20px" style="display: none;"
+        onclick="downloadFile()">下载zip</button>
+    <button id="delete-files" class="btn btn-danger margin-top-20px" style="display: none;"
+        onclick="confirmDelete()">删除</button>
+    </div>
+    <div id="search-list-container" class="mt-3"></div>
+    </div>
+
+
+
+
+    <script>
+
+        document.getElementById('run-script').addEventListener('click', function () {
+            const runScriptButton = document.getElementById('run-script');
+            const account = document.getElementById('account').value;
+            const password = document.getElementById('password').value;
+            const lang = document.querySelector('input[name="lang"]:checked').value;
+
+            // 禁用按钮并更改按钮文本
+            runScriptButton.disabled = true;
+            runScriptButton.textContent = '生成中……';
+
+            fetch('/run-script', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `account=${encodeURIComponent(account)}&password=${encodeURIComponent(password)}&lang=${encodeURIComponent(lang)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        setTimeout(() => {
+                            fetch('/list-recap-files', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `account=${encodeURIComponent(account)}`
+                            })
+                                .then(response => response.json())
+                                .then(files => {
+                                    const fileListContainer = document.getElementById('file-list-container');
+                                    fileListContainer.innerHTML = ''; // 清空文件列表容器
+                                    files.forEach(file => {
+                                        const fileLink = document.createElement('a');
+                                        fileLink.href = `/static/recap/${file}`; // 使用相对路径
+                                        fileLink.textContent = file;
+                                        fileLink.target = '_blank'; // 在新窗口中打开
+                                        fileListContainer.appendChild(fileLink);
+                                        fileListContainer.appendChild(document.createElement('br'));
+                                    });
+
+                                    // 恢复按钮状态
+                                    runScriptButton.disabled = false;
+                                    runScriptButton.textContent = '生成年度总结';
+                                });
+                        });
+                        alert('提示：\n' + data.output);
+                    } else {
+                        alert('提示：\n' + data.output);
+                        // 如果失败，也恢复按钮状态
+                        runScriptButton.disabled = false;
+                        runScriptButton.textContent = '生成年度总结';
+                    }
+                }).catch(error => {
+                    // 处理网络错误等问题
+                    alert('发生错误：\n' + error);
+                    // 恢复按钮状态
+                    runScriptButton.disabled = false;
+                    runScriptButton.textContent = '生成年度总结';
+                });
+        });
+
+
+        document.getElementById('search-files').addEventListener('click', function () {
+            const searchAccount = document.getElementById('search-account').value.trim(); // 使用trim()去除两端空白字符
+
+            // 检查搜索框内容是否为空
+            if (searchAccount === '') {
+                alert('请输入账号');
+                return; // 如果为空，显示提示并退出函数
+            }
+
+            // 禁用查询按钮并更改按钮文本
+            const searchButton = document.getElementById('search-files');
+            searchButton.disabled = true;
+            searchButton.textContent = '查询中……';
+
+            // 发送查询请求
+            fetch('/list-recap-files', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `account=${encodeURIComponent(searchAccount)}`
+            })
+                .then(response => response.json())
+                .then(files => {
+                    const searchListContainer = document.getElementById('search-list-container');
+                    searchListContainer.innerHTML = ''; // 清空搜索结果容器
+
+                    // 过滤出完全匹配账号的文件
+                    const matchedFiles = files.filter(file =>
+                        file.startsWith(`${searchAccount}_`) && (file.endsWith('.html') || file.endsWith('.zip'))
+                    );
+
+                    if (matchedFiles.length === 0) {
+                        // 如果没有查询到结果，则显示“无查询结果”
+                        searchListContainer.textContent = '"' + searchAccount + '"账号未查询到年度总结，请生成数据。';
+                    } else {
+                        // 如果有查询到结果，则显示链接
+                        matchedFiles.forEach(file => {
+                            const fileLink = document.createElement('a');
+                            fileLink.href = `/static/recap/${file}`; // 使用相对路径
+                            fileLink.textContent = file;
+                            fileLink.target = '_blank'; // 在新窗口中打开
+                            searchListContainer.appendChild(fileLink);
+                            searchListContainer.appendChild(document.createElement('br'));
+                        });
+                        // 如果有查询到结果，则显示下载按钮
+                        document.getElementById('download-files').style.display = 'inline-block';
+                        document.getElementById('delete-files').style.display = 'inline-block';
+                    }
+
+                    // 恢复查询按钮状态
+                    searchButton.disabled = false;
+                    searchButton.textContent = '查询';
+                }).catch(error => {
+                    // 处理网络错误等问题
+                    alert('发生错误：\n' + error);
+                    // 恢复查询按钮状态
+                    searchButton.disabled = false;
+                    searchButton.textContent = '查询';
+                });
+        });
+
+
+        function downloadFile() {
+            // 获取输入框中的账号
+            var account = document.getElementById('search-account').value;
+            // 如果账号非空，则拼接文件路径并触发下载
+            if (account) {
+                var filePath = './recap/' + encodeURIComponent(account) + '_recap.zip';
+                // 创建一个a标签用于下载
+                var downloadLink = document.createElement('a');
+                downloadLink.href = filePath;
+                downloadLink.download = account + '_recap.zip';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            } else {
+                // 如果输入框为空，则可以在这里添加提示用户输入账号的代码
+                alert('请输入账号进行查询');
+            }
+        }
+
+        function confirmDelete() {
+            var account = document.getElementById('search-account').value;
+            if (account) {
+                var confirmResponse = confirm('确定删除所有' + account + '的数据吗？');
+                if (confirmResponse) {
+                    // 用户点击了确定，发送请求到Flask后端进行删除操作
+
+                    fetch('/delete-endpoint', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `account=${encodeURIComponent(account)}`
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            // 处理响应数据
+                            console.log(data);
+                            var messageContainer = document.getElementById('message-container');
+                            if (data.success) {
+                                alert('删除成功。' + (data.output || ''));
+                            } else {
+                                alert('删除失败：' + (data.output || ''));
+                            }
+                            location.reload();
+                        })
+                        .catch((error) => {
+                            // 处理请求错误
+                            console.error('Error:', error);
+                            alert('请求错误：' + error);
+                            // 发生错误时也刷新页面
+                            location.reload();
+                        });
+                } else {
+                    // 用户点击了取消，不执行任何操作
+                }
+            } else {
+                alert('请输入账号进行查询');
+            }
+        }
+
+
+    </script>
+    <script src="./bootstrap.min.js"></script>
+    <script src="./bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="./bootstrap.min.js"></script>
+
+    <!-- 在你的HTML文件中添加这个footer部分 -->
+    <footer>
+        <p>注意：本项目与postcrossing官方无关！且本网站不会存储你的个人账号、密码，只会用于数据的生成。如果不需要，建议删除个人文件</p>
+        <div class="text-center p-3">
+            由<a class="text-dark" href="https://github.com/arthurfsy2/PostCrossingRecap_cn"
+                target="_blank">arthurfsy2/PostCrossingRecap_cn</a>生成
+        </div>
+        <div class="text-center p-3">
+            年终总结页面、css样式参考了<a class="text-dark" href="https://github.com/cnovel/PostCrossingRecap"
+                target="_blank">cnovel/PostCrossingRecap</a>的代码
+        </div>
+    </footer>
+</body>
+
+</html>

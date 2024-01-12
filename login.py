@@ -61,7 +61,7 @@ def login(account,password):
         extracted_host = None
         print("账号/密码错误，已退出")
         os.remove("log.txt")  
-        sys.exit()
+        raise SystemExit("账号/密码错误，已退出")  # 引发异常并退出程序
 
     if match_remember:
         extracted_remember = match_remember.group(1)
@@ -89,7 +89,7 @@ def getUpdateID(account,type,Cookie):
         }
     url=f'https://www.postcrossing.com/user/{account}/data/{type}'    
     response = requests.get(url,headers=headers).json()
-    with open(f"./data/{type}.json", 'w') as f:
+    with open(f"./data/{account}_{type}.json", 'w') as f:
         json.dump(response, f, indent=2)   
 
 if __name__ == "__main__":

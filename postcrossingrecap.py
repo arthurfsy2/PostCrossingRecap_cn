@@ -5,11 +5,15 @@ from datetime import datetime
 import os
 from collections import Counter
 import argparse
+import zipfile
+import re
+
+lang_all = ['cn', 'en']
 
 
-def getYearList(type):
+def getYearList(type, account):
     # 读取received.json文件
-    with open(f'data/{type}.json', 'r') as file:
+    with open(f'data/{account}_{type}.json', 'r') as file:
         data_raw = json.load(file)
     year_list = []
 
@@ -21,49 +25,36 @@ def getYearList(type):
             year_list.append(year)
     return year_list
 
-def getYearData(type, year):
+
+def getYearData(type, year, account):
     # 读取received.json文件
-    with open(f'data/{type}.json', 'r') as file:
+    with open(f'data/{account}_{type}.json', 'r') as file:
         data_raw = json.load(file)
     # 创建一个空列表来存储符合条件的子数组
     yearData = []
-    
+
     # 遍历receivedData中的每个子数组
     for item in data_raw:
         # 将时间戳转换为年份
         timestamp = item[5]
         date = datetime.fromtimestamp(timestamp)  # 将时间戳转换为日期格式
         timestamp_year = date.strftime("%Y")  # 提取年份（YYYY）
-        
+
         # 如果时间戳的年份与输入的年份相同，则保留该子数组
         if timestamp_year == year:
             yearData.append(item)
-    
+
     # # 确保输出目录存在
     # output_dir = f"./data"
     # if not os.path.exists(output_dir):
     #     os.makedirs(output_dir)
-    
+
     # 将筛选后的数据输出到指定的JSON文件中
     with open(f"./data/{type}_{year}.json", 'w') as outfile:
         json.dump(yearData, outfile, indent=2)
-    
+
 # 调用函数示例
 
-
-
-def createCalendar():
-    with open("data/.json", "r") as file:
-        a_data = json.load(file)
-    year_list = []
-
-    for data in a_data:
-        timestamp = data[5]  # 获取时间戳
-        date = datetime.fromtimestamp(timestamp)  # 将时间戳转换为日期格式
-        year = date.strftime("%Y")  # 提取年份（YYYY）
-        if year not in year_list:
-            year_list.append(year)
-    
 
 def as_string(i: int) -> str:
     return "{:,}".format(i).replace(",", " ")
@@ -83,7 +74,8 @@ class CardInfo:
         self.kilometers = data_card[6]
         self.days = data_card[7]
 
-def createYearRecap(year,lang):
+
+def createYearRecap(year, lang, account):
     cards_sent = []
     cards_received = []
     with open(f'data/sent_{year}.json', 'r') as sent_file:
@@ -114,7 +106,6 @@ def createYearRecap(year,lang):
     from_best_country = c_best_countries.most_common(1)[0][0]
     from_best_country = country_alpha_to_str(from_best_country)
 
-
     to_number = len(cards_sent)
     to_max_km = 0
     to_max_country = ""
@@ -134,10 +125,11 @@ def createYearRecap(year,lang):
     to_best_country = c_best_countries.most_common(1)[0][0]
     to_best_country = country_alpha_to_str(to_best_country)
 
-    with open(f"template_{lang}.html", 'r',encoding="utf-8") as temp:
+    with open(f"template_{lang}.html", 'r', encoding="utf-8") as temp:
         html = temp.read()
     html = html.replace("$$FROM_NUMBER$$", as_string(from_number))
-    html = html.replace("$$FROM_QUICKEST_DAYS$$", as_string(from_quickest_days))
+    html = html.replace("$$FROM_QUICKEST_DAYS$$",
+                        as_string(from_quickest_days))
     html = html.replace("$$FROM_QUICKEST_COUNTRY$$", from_quickest_country)
     html = html.replace("$$FROM_SLOWEST_DAYS$$", as_string(from_slowest_days))
     html = html.replace("$$FROM_SLOWEST_COUNTRY$$", from_slowest_country)
@@ -152,38 +144,73 @@ def createYearRecap(year,lang):
     html = html.replace("$$TO_BEST_COUNTRY$$", to_best_country)
     html = html.replace("$$TO_KM_TRAVELED$$", as_string(to_km_traveled))
     html = html.replace("$$YEAR$$", year)
-    with open(f"./recap/{year}_recap_{lang}.html", 'w',encoding="utf-8") as recap:
+    with open(f"./static/recap/{account}_{year}_recap_{lang}.html", 'w', encoding="utf-8") as recap:
         recap.write(html)
-    print(f"Generated ./recap/{year}_recap_{lang}.html")
+    print(f"Generated ./static/recap/{account}_{year}_recap_{lang}.html")
+
+
+def remove_other_files(directory, keep_files):
+    # 列出目录下的所有文件
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+        # 检查文件是否在保留列表中
+        if filename not in keep_files and os.path.isfile(file_path):
+            # 如果不在保留列表中且是文件，则删除
+            os.remove(file_path)
+            # print(f"Deleted: {file_path}")
+
+
+def zipHtmlFile(account, path):
+    # 创建一个正则表达式模式来匹配以账户名开头并以.html结尾的文件
+    pattern = re.compile(f"^{re.escape(account)}_.*\\.html$")
+    # 创建一个ZIP文件的名称
+    zip_filename = f"{path}/{account}_recap.zip"
+
+    with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        # 使用os.walk遍历目录树
+        for root, dirs, files in os.walk(path):
+            for filename in files:
+                # 检查文件名是否符合模式
+                if pattern.match(filename) or root.endswith('src'):
+                    filepath = os.path.join(root, filename)
+                    # 计算在ZIP文件中的路径
+                    zip_path = os.path.relpath(filepath, start=path)
+                    # 将文件添加到ZIP文件中
+                    zipf.write(filepath, arcname=zip_path)
+
 
 if __name__ == "__main__":
-    types = ['received','sent']
+    # 示例调用
+    # directory_to_clean = './static/recap'
+    # files_to_keep = ['a.html','.gitkeep']
+    # remove_other_files(directory_to_clean, files_to_keep)
+    types = ['received', 'sent']
     parser = argparse.ArgumentParser()
-    parser.add_argument("language", help="input the language you want to create")        
+    parser.add_argument(
+        "language", help="input the language you want to create")
+    parser.add_argument("account", help="input the account you want to create")
     options = parser.parse_args()
     language = options.language
+    account = options.account
 
-    for type in types:
-        yearlist = getYearList(type)
+    def createHtml(lang):
+        for type in types:
+            yearlist = getYearList(type, account)
+            for year in yearlist:
+                getYearData(type, year, account)
+            print(f"————————————————————")
+        yearlist = getYearList("sent", account)
         for year in yearlist:
-            getYearData(type,year)
-        print(f"————————————————————")
-        
-    yearlist = getYearList("sent")
-    for year in yearlist:
-        createYearRecap(year,language)
+            createYearRecap(year, lang, account)
 
-    def remove_other_files(directory, keep_files):
-        # 列出目录下的所有文件
-        for filename in os.listdir(directory):
-            file_path = os.path.join(directory, filename)
-            # 检查文件是否在保留列表中
-            if filename not in keep_files and os.path.isfile(file_path):
-                # 如果不在保留列表中且是文件，则删除
-                os.remove(file_path)
-                # print(f"Deleted: {file_path}")
+    if language == "all":
+        for lang in lang_all:
+            createHtml(lang)
+    else:
+        createHtml(language)
 
     # 示例调用
     directory_to_clean = './data'
-    files_to_keep = ['sent.json', 'received.json','.gitkeep']
+    files_to_keep = ['.gitkeep']
     remove_other_files(directory_to_clean, files_to_keep)
+    zipHtmlFile(account, "./static/recap")

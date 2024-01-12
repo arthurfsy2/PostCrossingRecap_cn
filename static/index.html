@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Language Switcher with iFrame</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="./bootstrap.min.css" />
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+    />
+    <style>
+      .language-switcher {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+        color: #333;
+        text-align: center;
+        font-size: 1.5em;
+        margin: 0;
+        margin-top: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <img
+      src="./recap/src/logo.png"
+      alt="Postcrossing logo"
+      style="width: 50%; height: auto"
+    />
+    <div class="language-switcher">
+      <div class="dropdown">
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <i class="fas fa-globe"></i>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <li>
+            <button class="dropdown-item" onclick="switchLanguage('cn')">
+              中文
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item" onclick="switchLanguage('en')">
+              English
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <iframe
+      id="content-frame"
+      src="index_cn.html"
+      style="width: 100%; height: 200vh"
+      frameborder="0"
+    ></iframe>
+
+    <!-- Bootstrap and jQuery JavaScript libraries -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="./bootstrap.min.js"></script>
+
+    <script>
+      function switchLanguage(lang) {
+        var iframe = document.getElementById("content-frame");
+        if (lang === "en") {
+          iframe.src = "index_en.html";
+        } else {
+          iframe.src = "index_cn.html";
+        }
+      }
+    </script>
+  </body>
+</html>
