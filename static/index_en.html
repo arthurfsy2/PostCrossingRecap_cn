@@ -112,7 +112,8 @@
     
             <button id="run-script" class="btn btn-primary mt-3">Generate Annual Recap</button>
         </form>
-        <div id="file-list-container" class="mt-3">
+        <div id="file-list-container" class="mt-3"></div>
+        <div id="calendar-container" class="mt-3"></div>
         </div>
     </div>
 
@@ -132,6 +133,7 @@
         onclick="confirmDelete()">Delete</button>
     </div>
     <div id="search-list-container" class="mt-3"></div>
+    <div id="calendar-container2" class="mt-3"></div>
     </div>    
 
     <script>
@@ -173,6 +175,8 @@
                                 .then(files => {
                                     const fileListContainer = document.getElementById('file-list-container');
                                     fileListContainer.innerHTML = ''; // 清空文件列表容器
+                                    const calendarContainer = document.getElementById('calendar-container');
+                                    calendarContainer.innerHTML = ''; // 清空日历容器
                                     files.forEach(file => {
                                         const fileLink = document.createElement('a');
                                         fileLink.href = `/static/recap/${file}`; // 使用相对路径
@@ -181,7 +185,15 @@
                                         fileListContainer.appendChild(fileLink);
                                         fileListContainer.appendChild(document.createElement('br'));
                                     });
+                                    // 创建 iframe 元素并设置其属性
+                                    const iframe = document.createElement('iframe');
+                                    iframe.src = `/static/recap/arthurfsy_calendar.html`; // 设置 iframe 的 src 属性
+                                    iframe.width = '70%'; // 设置 iframe 的宽度
+                                    iframe.height = '600'; // 设置 iframe 的高度
+                                    iframe.frameBorder = '0'; // 可选：移除 iframe 边框
 
+                                    // 将 iframe 添加到 map-container 中
+                                    calendarContainer.appendChild(iframe);
                                     // 恢复按钮状态
                                     runScriptButton.disabled = false;
                                     runScriptButton.textContent = 'Generate Annual Summary';
@@ -230,7 +242,8 @@
                 .then(files => {
                     const searchListContainer = document.getElementById('search-list-container');
                     searchListContainer.innerHTML = ''; // 清空搜索结果容器
-
+                    const calendarContainer2 = document.getElementById('calendar-container2');
+                    calendarContainer2.innerHTML = ''; // 清空日历容器
                     // 过滤出完全匹配账号的文件
                     const matchedFiles = files.filter(file =>
                         file.startsWith(`${searchAccount}_`) && (file.endsWith('.html') || file.endsWith('.zip'))
@@ -253,7 +266,15 @@
                         document.getElementById('download-files').style.display = 'inline-block';
                         document.getElementById('delete-files').style.display = 'inline-block';
                     }
+                     // 创建 iframe 元素并设置其属性
+                     const iframe = document.createElement('iframe');
+                    iframe.src = `/static/recap/${searchAccount}_calendar.html`; // 设置 iframe 的 src 属性
+                    iframe.width = '70%'; // 设置 iframe 的宽度
+                    iframe.height = '600'; // 设置 iframe 的高度
+                    iframe.frameBorder = '0'; // 可选：移除 iframe 边框
 
+                    // 将 iframe 添加到 map-container 中
+                    calendarContainer2.appendChild(iframe);
                     // 恢复查询按钮状态
                     searchButton.disabled = false;
                     searchButton.textContent = 'Search';

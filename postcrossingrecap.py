@@ -50,7 +50,7 @@ def getYearData(type, year, account):
     #     os.makedirs(output_dir)
 
     # 将筛选后的数据输出到指定的JSON文件中
-    with open(f"./data/{type}_{year}.json", 'w') as outfile:
+    with open(f"./data/{account}_{type}_{year}.json", 'w') as outfile:
         json.dump(yearData, outfile, indent=2)
 
 # 调用函数示例
@@ -78,11 +78,11 @@ class CardInfo:
 def createYearRecap(year, lang, account):
     cards_sent = []
     cards_received = []
-    with open(f'data/sent_{year}.json', 'r') as sent_file:
+    with open(f'data/{account}_sent_{year}.json', 'r') as sent_file:
         sents = json.load(sent_file)
         for s in sents:
             cards_sent.append(CardInfo(s))
-    with open(f'data/received_{year}.json', 'r') as received_file:
+    with open(f'data/{account}_received_{year}.json', 'r') as received_file:
         receiveds = json.load(received_file)
         for s in receiveds:
             cards_received.append(CardInfo(s))
@@ -179,6 +179,83 @@ def zipHtmlFile(account, path):
                     zipf.write(filepath, arcname=zip_path)
 
 
+def createCalendar(account):
+    with open(f"data/{account}_UserStats.json", "r") as file:
+        a_data = json.load(file)
+    year_list = []
+
+    for data in a_data:
+        timestamp = data[0]  # 获取时间戳
+        date = datetime.fromtimestamp(timestamp)  # 将时间戳转换为日期格式
+        year = date.strftime("%Y")  # 提取年份（YYYY）
+        if year not in year_list:
+            year_list.append(year)
+    calendar_all = ""
+    series_all = ""
+
+    for i, year in enumerate(year_list):
+        calendar = f"""
+        {{
+            top: {i*150},
+            cellSize: ["auto", "15"],
+            range: {year},
+            itemStyle: {{
+                color: '#ccc',
+                borderWidth: 3,
+                borderColor: '#fff'
+            }},
+            splitLine: true,
+            yearLabel: {{
+                show: true
+            }},
+            dayLabel: {{
+                firstDay: 1,
+            }}
+        }},
+        """
+        calendar_all += calendar
+
+        series = f"""
+        {{
+        type: "heatmap",
+        coordinateSystem: "calendar",
+        calendarIndex: {i},
+        data: $data$
+        }},
+        """
+        series_all += series
+    height = len(year_list)*150
+    # print("calendar_all:\n", calendar_all)
+    # print("series_all:\n", series_all)
+    # print("height:\n", height)
+
+    calendar = {}
+    for data in a_data:
+        # 将时间戳转换为YYYY-MM-DD格式
+        timestamp = data[0]
+        date = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+
+        # 统计每天的总数
+        if date in calendar:
+            calendar[date] += 1
+        else:
+            calendar[date] = 1
+
+    # 将结果转换为列表格式
+    calendar_result = [[date, total] for date, total in calendar.items()]
+    # print("calendar_result:\n", calendar_result)
+    with open(f"calendar_template.html", 'r', encoding="utf-8") as temp:
+        html = temp.read()
+        html = html.replace("$nickname$", account)
+        html = html.replace("$calendar$", calendar_all)
+        html = html.replace("$series$", series_all)
+        html = html.replace("$height$", str(height))
+        html = html.replace("$data$", json.dumps(calendar_result))
+    with open(f"./static/recap/{account}_calendar.html", 'w', encoding="utf-8") as f:
+        f.write(html)
+    print(f"Generated ./static/recap/{account}_calendar.html")
+
+
 if __name__ == "__main__":
     # 示例调用
     # directory_to_clean = './static/recap'
@@ -208,6 +285,7 @@ if __name__ == "__main__":
             createHtml(lang)
     else:
         createHtml(language)
+    createCalendar(account)
 
     # 示例调用
     directory_to_clean = './data'

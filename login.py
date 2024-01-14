@@ -1,5 +1,6 @@
 import mechanize
 import http.cookiejar
+from datetime import datetime
 import sys
 import re
 import json
@@ -99,6 +100,27 @@ def getUpdateID(account, type, Cookie):
         json.dump(response, f, indent=2)
 
 
+def getUserStat(account, Cookie):
+    headers = {
+        'Host': 'www.postcrossing.com',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Sec-Fetch-Site': 'same-origin',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate',
+        'Sec-Fetch-Mode': 'cors',
+        'Accept': 'application/json, text/javascript, */*; q=0.01',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0.1 Mobile/15E148 Safari/604.1',
+        'Connection': 'keep-alive',
+        'Referer': f'https://www.postcrossing.com/user/{account}/stats',
+        'Cookie': Cookie,
+        'Sec-Fetch-Dest': 'empty'
+    }
+    url = f'https://www.postcrossing.com/user/{account}/feed'
+    a_data = requests.get(url, headers=headers).json()
+    with open(f"./data/{account}_UserStats.json", "w") as file:
+        json.dump(a_data, file, indent=2)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("account", help="input your account")
@@ -111,3 +133,4 @@ if __name__ == "__main__":
     Cookie = login(account, password)
     getUpdateID(account, "sent", Cookie)
     getUpdateID(account, "received", Cookie)
+    getUserStat(account, Cookie)
