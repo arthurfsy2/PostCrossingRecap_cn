@@ -179,7 +179,7 @@ def zipHtmlFile(account, path):
                     zipf.write(filepath, arcname=zip_path)
 
 
-def createCalendar(account):
+def createCalendar(lang, account):
     with open(f"data/{account}_UserStats.json", "r") as file:
         a_data = json.load(file)
     year_list = []
@@ -196,7 +196,7 @@ def createCalendar(account):
     for i, year in enumerate(year_list):
         calendar = f"""
         {{
-            top: {i*150},
+            top: {i*150+50},
             cellSize: ["auto", "15"],
             range: {year},
             itemStyle: {{
@@ -224,7 +224,7 @@ def createCalendar(account):
         }},
         """
         series_all += series
-    height = len(year_list)*150
+    height = len(year_list)*150+50
     # print("calendar_all:\n", calendar_all)
     # print("series_all:\n", series_all)
     # print("height:\n", height)
@@ -240,7 +240,7 @@ def createCalendar(account):
             calendar[date] += 1
         else:
             calendar[date] = 1
-
+    lang_final = "zh" if lang == "cn" else "en"
     # 将结果转换为列表格式
     calendar_result = [[date, total] for date, total in calendar.items()]
     # print("calendar_result:\n", calendar_result)
@@ -250,10 +250,11 @@ def createCalendar(account):
         html = html.replace("$calendar$", calendar_all)
         html = html.replace("$series$", series_all)
         html = html.replace("$height$", str(height))
+        html = html.replace("$lang$", str(lang_final))
         html = html.replace("$data$", json.dumps(calendar_result))
-    with open(f"./static/recap/{account}_calendar.html", 'w', encoding="utf-8") as f:
+    with open(f"./static/recap/{account}_calendar_{lang}.html", 'w', encoding="utf-8") as f:
         f.write(html)
-    print(f"Generated ./static/recap/{account}_calendar.html")
+    print(f"Generated ./static/recap/{account}_calendar_{lang}.html")
 
 
 if __name__ == "__main__":
@@ -279,13 +280,13 @@ if __name__ == "__main__":
         yearlist = getYearList("sent", account)
         for year in yearlist:
             createYearRecap(year, lang, account)
+        createCalendar(lang, account)
 
     if language == "all":
         for lang in lang_all:
             createHtml(lang)
     else:
         createHtml(language)
-    createCalendar(account)
 
     # 示例调用
     directory_to_clean = './data'

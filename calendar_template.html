@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="$lang$'">
   <head>
     <meta charset="utf-8" />
     <title>$nickname$'s Calendar</title>
@@ -11,7 +11,7 @@
 
       #chart-container {
         position: relative;
-        height: 100vh;
+        height: $height$px;
         overflow: hidden;
       }
     </style>
@@ -28,6 +28,9 @@
       });
 
       var option = {
+        title: {
+          text: "$nickname$'s calendar",
+        },
         tooltip: {},
         visualMap: {
           show: false,
@@ -40,7 +43,6 @@
         calendar: [$calendar$],
         series: [$series$],
       };
-      const height = $height$;
       if (option && typeof option === "object") {
         myChart.setOption(option);
       }
