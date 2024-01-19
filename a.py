@@ -23,9 +23,9 @@ def run_script():
 
     # 执行Python脚本并捕获输出
     login_result = subprocess.run(
-        ['python', login_script_path, username, password], capture_output=True, text=True)
+        ['python3', login_script_path, username, password], capture_output=True, text=True)
     recap_result = subprocess.run(
-        ['python', recap_script_path, lang, username], capture_output=True, text=True)
+        ['python3', recap_script_path, lang, username], capture_output=True, text=True)
 
     # 将标准输出和标准错误合并
     output = login_result.stderr + recap_result.stdout
@@ -52,9 +52,9 @@ def list_recap_files():
 def delete_files():
     username = request.form.get('account')
     delete_script_path = os.path.join(dir_path, 'login.py')
-    #  ['python', login_script_path, username, password], capture_output=True, text=True)
+    #  ['python3', login_script_path, username, password], capture_output=True, text=True)
     delete_result = subprocess.run(
-        ['python', delete_script_path, username], capture_output=True, text=True)
+        ['python3', delete_script_path, username], capture_output=True, text=True)
     output = delete_result.stderr + delete_result.stdout
     return jsonify(success=True, output=output)
 
