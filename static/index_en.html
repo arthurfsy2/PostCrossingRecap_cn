@@ -184,16 +184,17 @@
                                         fileLink.target = '_blank'; // 在新窗口中打开
                                         fileListContainer.appendChild(fileLink);
                                         fileListContainer.appendChild(document.createElement('br'));
-                                    });
-                                    // 创建 iframe 元素并设置其属性
-                                    const iframe = document.createElement('iframe');
-                                    iframe.src = `/static/recap/arthurfsy_calendar.html`; // 设置 iframe 的 src 属性
-                                    iframe.width = '70%'; // 设置 iframe 的宽度
-                                    iframe.height = '600'; // 设置 iframe 的高度
-                                    iframe.frameBorder = '0'; // 可选：移除 iframe 边框
+                                        // 创建 iframe 元素并设置其属性
+                                        const iframe = document.createElement('iframe');
+                                        iframe.src = `/static/recap/${account}_calendar_en.html`; // 设置 iframe 的 src 属性
+                                        iframe.width = '70%'; // 设置 iframe 的宽度
+                                        iframe.height = '600'; // 设置 iframe 的高度
+                                        iframe.frameBorder = '0'; // 可选：移除 iframe 边框
 
-                                    // 将 iframe 添加到 map-container 中
-                                    calendarContainer.appendChild(iframe);
+                                        // 将 iframe 添加到 map-container 中
+                                        calendarContainer.appendChild(iframe);
+                                        });
+                                    
                                     // 恢复按钮状态
                                     runScriptButton.disabled = false;
                                     runScriptButton.textContent = 'Generate Annual Summary';
@@ -265,16 +266,17 @@
                         // 如果有查询到结果，则显示下载按钮
                         document.getElementById('download-files').style.display = 'inline-block';
                         document.getElementById('delete-files').style.display = 'inline-block';
-                    }
-                     // 创建 iframe 元素并设置其属性
-                     const iframe = document.createElement('iframe');
-                    iframe.src = `/static/recap/${searchAccount}_calendar.html`; // 设置 iframe 的 src 属性
-                    iframe.width = '70%'; // 设置 iframe 的宽度
-                    iframe.height = '600'; // 设置 iframe 的高度
-                    iframe.frameBorder = '0'; // 可选：移除 iframe 边框
+                        // 创建 iframe 元素并设置其属性
+                        const iframe = document.createElement('iframe');
+                        iframe.src = `/static/recap/${searchAccount}_calendar_en.html`; // 设置 iframe 的 src 属性
+                        iframe.width = '70%'; // 设置 iframe 的宽度
+                        iframe.height = '600'; // 设置 iframe 的高度
+                        iframe.frameBorder = '0'; // 可选：移除 iframe 边框
 
-                    // 将 iframe 添加到 map-container 中
-                    calendarContainer2.appendChild(iframe);
+                        // 将 iframe 添加到 map-container 中
+                        calendarContainer2.appendChild(iframe);
+                    }
+                     
                     // 恢复查询按钮状态
                     searchButton.disabled = false;
                     searchButton.textContent = 'Search';
