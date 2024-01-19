@@ -51,8 +51,7 @@ def list_recap_files():
 @app.route('/delete-endpoint', methods=['POST'])
 def delete_files():
     username = request.form.get('account')
-    delete_script_path = os.path.join(dir_path, 'login.py')
-    #  ['python3', login_script_path, username, password], capture_output=True, text=True)
+    delete_script_path = os.path.join(dir_path, 'delete.py')
     delete_result = subprocess.run(
         ['python3', delete_script_path, username], capture_output=True, text=True)
     output = delete_result.stderr + delete_result.stdout
