@@ -186,8 +186,10 @@
                                         fileLink.target = '_blank'; // 在新窗口中打开
                                         fileListContainer.appendChild(fileLink);
                                         fileListContainer.appendChild(document.createElement('br'));
-                                        // 创建 iframe 元素并设置其属性
-                                        const iframe = document.createElement('iframe');
+                                       
+                                    });
+                                     // 创建 iframe 元素并设置其属性
+                                     const iframe = document.createElement('iframe');
                                         iframe.src = `/static/recap/${account}_calendar_cn.html`; // 设置 iframe 的 src 属性
                                         iframe.width = '70%'; // 设置 iframe 的宽度
                                         iframe.height = '600'; // 设置 iframe 的高度
@@ -195,8 +197,6 @@
 
                                         // 将 iframe 添加到 map-container 中
                                         calendarContainer.appendChild(iframe);
-                                    });
-                                    
                                     // 恢复按钮状态
                                     runScriptButton.disabled = false;
                                     runScriptButton.textContent = '生成年度回顾';
