@@ -162,7 +162,7 @@ def remove_other_files(directory, keep_files):
 
 def zipHtmlFile(account, path):
     # 创建一个正则表达式模式来匹配以账户名开头并以.html结尾的文件
-    pattern = re.compile(f"^{re.escape(account)}_.*\\.html$")
+    pattern = re.compile(f"^{re.escape(account)}_(?!.*\\.zip$).*")
     # 创建一个ZIP文件的名称
     zip_filename = f"{path}/{account}_recap.zip"
 
