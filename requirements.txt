@@ -1,5 +1,5 @@
 emojiflags==0.1.1
 Flask==3.0.3
-mechanize==0.4.9
+mechanize==0.4.10
 pycountry==24.6.1
 Requests==2.32.3
