@@ -1,18 +1,26 @@
-name: Docker Image CI
+name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u arthurfsy2 --password-stdin
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag arthurfsy2/pcrecap:latest
+
+      - name: Push the Docker image
+        run: docker push arthurfsy2/pcrecap:latest
