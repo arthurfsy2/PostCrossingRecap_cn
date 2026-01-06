@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import subprocess
 import os
+import sys
 
 app = Flask(__name__, static_folder="static")
 # 获取当前文件的绝对路径
@@ -20,11 +21,13 @@ def run_script():
     # 构建完整的脚本路径
     recap_script_path = os.path.join(dir_path, "postcrossingrecap.py")
 
+    # 使用当前 Flask 应用的 Python 解释器
+    python_executable = sys.executable
     recap_result = subprocess.run(
-        ["python3", recap_script_path, lang, username, password],
+        [python_executable, recap_script_path, lang, username, password],
         capture_output=True,
         text=True,
-        timeout=300,  # 增加超时时间
+        timeout=300,
     )
     output = recap_result.stderr + recap_result.stdout
     # 返回响应
@@ -54,8 +57,11 @@ def list_recap_files():
 def delete_files():
     username = request.form.get("account")
     delete_script_path = os.path.join(dir_path, "delete.py")
+    python_executable = sys.executable
     delete_result = subprocess.run(
-        ["python3", delete_script_path, username], capture_output=True, text=True
+        [python_executable, delete_script_path, username],
+        capture_output=True,
+        text=True,
     )
     output = delete_result.stderr + delete_result.stdout
     return jsonify(success=True, output=output)

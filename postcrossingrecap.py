@@ -66,7 +66,7 @@ def login(account, password):
         cookies = session.cookies.get_dict()
         Cookie = f"__Host-postcrossing={cookies.get('__Host-postcrossing', '')}; PostcrossingRemember={cookies.get('PostcrossingRemember', '')}"
 
-        print("Cookie_new:", Cookie)
+        # print("Cookie_new:", Cookie)
         return Cookie
     else:
         print("账号/密码错误，已退出")
