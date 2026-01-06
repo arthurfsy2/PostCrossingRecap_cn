@@ -20,8 +20,6 @@ def run_script():
     # 构建完整的脚本路径
     recap_script_path = os.path.join(dir_path, "postcrossingrecap.py")
 
-    print(f"Executing: python {recap_script_path} {lang} {username} {password}")
-    print(f"Script exists: {os.path.exists(recap_script_path)}")
     recap_result = subprocess.run(
         ["python3", recap_script_path, lang, username, password],
         capture_output=True,
