@@ -1,0 +1,14 @@
+[project]
+name = "postcrossingrecap-cn"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "emojiflags==0.1.1",
+    "flask==3.0.3",
+    "jinja2>=3.1.6",
+    "mechanize==0.4.10",
+    "pycountry==24.6.1",
+    "requests==2.32.3",
+]

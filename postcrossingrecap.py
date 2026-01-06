@@ -7,13 +7,109 @@ from collections import Counter
 import argparse
 import zipfile
 import re
+from jinja2 import Template
+import requests
 
-lang_all = ['cn', 'en']
+# Log in with your account and password to obtain cookies
+
+
+def login(account, password):
+    session = requests.Session()
+
+    # 请求登录页面以获取 CSRF 令牌
+    login_url = "https://www.postcrossing.com/login"
+    response = session.get(login_url)
+
+    # 提取 CSRF 令牌
+    csrf_token = re.search(
+        r'name="signin\[_login_csrf_token\]" value="(.*?)"', response.text
+    )
+    csrf_token_value = csrf_token.group(1) if csrf_token else None
+    # print("csrf_token_value:", csrf_token_value)
+    if not csrf_token_value:
+
+        print("未找到 CSRF 令牌！")
+        return None
+
+    # 设置请求头
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"
+    }
+
+    # 表单数据，包括 CSRF 令牌
+    payload = {
+        "signin[username]": account,
+        "signin[password]": password,
+        "signin[_login_csrf_token]": csrf_token_value,  # 这里包含 CSRF 令牌
+        "signin[remember]": "on",
+    }
+
+    # 提交表单
+    response = session.post(login_url, data=payload, headers=headers)
+
+    # 检查登录是否成功
+    if response.ok:
+        cookies = session.cookies.get_dict()
+        Cookie = f"__Host-postcrossing={cookies.get('__Host-postcrossing', '')}; PostcrossingRemember={cookies.get('PostcrossingRemember', '')}"
+
+        print("Cookie_new:", Cookie)
+        return Cookie
+    else:
+        print("账号/密码错误，已退出")
+        return None
+
+
+# download your own sent.json/received.json
+
+
+def getUpdateID(account, type, Cookie):
+    headers = {
+        "Host": "www.postcrossing.com",
+        "X-Requested-With": "XMLHttpRequest",
+        "Sec-Fetch-Site": "same-origin",
+        "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+        "Accept-Encoding": "gzip, deflate",
+        "Sec-Fetch-Mode": "cors",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0.1 Mobile/15E148 Safari/604.1",
+        "Connection": "keep-alive",
+        "Referer": f"https://www.postcrossing.com/user/{account}/{type}",
+        "Cookie": Cookie,
+        "Sec-Fetch-Dest": "empty",
+    }
+    url = f"https://www.postcrossing.com/user/{account}/data/{type}"
+    response = requests.get(url, headers=headers).json()
+    with open(f"./data/{account}_{type}.json", "w") as f:
+        json.dump(response, f, indent=2)
+
+
+def getUserStat(account, Cookie):
+    headers = {
+        "Host": "www.postcrossing.com",
+        "X-Requested-With": "XMLHttpRequest",
+        "Sec-Fetch-Site": "same-origin",
+        "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+        "Accept-Encoding": "gzip, deflate",
+        "Sec-Fetch-Mode": "cors",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0.1 Mobile/15E148 Safari/604.1",
+        "Connection": "keep-alive",
+        "Referer": f"https://www.postcrossing.com/user/{account}/stats",
+        "Cookie": Cookie,
+        "Sec-Fetch-Dest": "empty",
+    }
+    url = f"https://www.postcrossing.com/user/{account}/feed"
+    a_data = requests.get(url, headers=headers).json()
+    with open(f"./data/{account}_UserStats.json", "w") as file:
+        json.dump(a_data, file, indent=2)
+
+
+lang_all = ["cn", "en"]
 
 
 def getYearList(type, account):
     # 读取received.json文件
-    with open(f'data/{account}_{type}.json', 'r') as file:
+    with open(f"data/{account}_{type}.json", "r") as file:
         data_raw = json.load(file)
     year_list = []
 
@@ -28,7 +124,7 @@ def getYearList(type, account):
 
 def getYearData(type, year, account):
     # 读取received.json文件
-    with open(f'data/{account}_{type}.json', 'r') as file:
+    with open(f"data/{account}_{type}.json", "r") as file:
         data_raw = json.load(file)
     # 创建一个空列表来存储符合条件的子数组
     yearData = []
@@ -50,8 +146,9 @@ def getYearData(type, year, account):
     #     os.makedirs(output_dir)
 
     # 将筛选后的数据输出到指定的JSON文件中
-    with open(f"./data/{account}_{type}_{year}.json", 'w') as outfile:
+    with open(f"./data/{account}_{type}_{year}.json", "w") as outfile:
         json.dump(yearData, outfile, indent=2)
+
 
 # 调用函数示例
 
@@ -78,58 +175,80 @@ class CardInfo:
 def createYearRecap(year, lang, account):
     cards_sent = []
     cards_received = []
-    with open(f'data/{account}_sent_{year}.json', 'r') as sent_file:
-        sents = json.load(sent_file)
-        for s in sents:
-            cards_sent.append(CardInfo(s))
-    with open(f'data/{account}_received_{year}.json', 'r') as received_file:
-        receiveds = json.load(received_file)
-        for s in receiveds:
-            cards_received.append(CardInfo(s))
+    sent_year_json_path = f"data/{account}_sent_{year}.json"
+    if os.path.exists(sent_year_json_path):
 
-    from_number = len(cards_received)
-    from_quickest_days = 1000
-    from_quickest_country = ""
-    from_slowest_days = 0
-    from_slowest_country = ""
-    from_km_traveled = 0
-    c_best_countries = Counter()
-    for c in cards_received:
-        from_km_traveled += c.kilometers
-        c_best_countries[c.country_code] += 1
-        if c.days < from_quickest_days:
-            from_quickest_days = c.days
-            from_quickest_country = country_alpha_to_str(c.country_code)
-        if c.days > from_slowest_days:
-            from_slowest_days = c.days
-            from_slowest_country = country_alpha_to_str(c.country_code)
-    from_best_country = c_best_countries.most_common(1)[0][0]
-    from_best_country = country_alpha_to_str(from_best_country)
+        with open(sent_year_json_path, "r") as sent_file:
+            sents = json.load(sent_file)
+            for s in sents:
+                cards_sent.append(CardInfo(s))
+    received_year_json_path = f"data/{account}_received_{year}.json"
+    if os.path.exists(received_year_json_path):
+        with open(received_year_json_path, "r") as received_file:
+            receiveds = json.load(received_file)
+            for s in receiveds:
+                cards_received.append(CardInfo(s))
 
-    to_number = len(cards_sent)
-    to_max_km = 0
-    to_max_country = ""
-    to_min_km = 10000000
-    to_min_country = ""
-    c_best_countries = Counter()
-    to_km_traveled = 0
-    for c in cards_sent:
-        to_km_traveled += c.kilometers
-        c_best_countries[c.country_code] += 1
-        if c.kilometers > to_max_km:
-            to_max_km = c.kilometers
-            to_max_country = country_alpha_to_str(c.country_code)
-        if c.kilometers < to_min_km:
-            to_min_km = c.kilometers
-            to_min_country = country_alpha_to_str(c.country_code)
-    to_best_country = c_best_countries.most_common(1)[0][0]
-    to_best_country = country_alpha_to_str(to_best_country)
+    if cards_received:
+        from_number = len(cards_received)
+        from_quickest_days = 1000
+        from_quickest_country = ""
+        from_slowest_days = 0
+        from_slowest_country = ""
+        from_km_traveled = 0
+        c_best_countries = Counter()
+        for c in cards_received:
+            from_km_traveled += c.kilometers
+            c_best_countries[c.country_code] += 1
+            if c.days < from_quickest_days:
+                from_quickest_days = c.days
+                from_quickest_country = country_alpha_to_str(c.country_code)
+            if c.days > from_slowest_days:
+                from_slowest_days = c.days
+                from_slowest_country = country_alpha_to_str(c.country_code)
+        from_best_country = c_best_countries.most_common(1)[0][0]
+        from_best_country = country_alpha_to_str(from_best_country)
+    else:
+        from_number = 0
+        from_quickest_days = 0
+        from_quickest_country = ""
+        from_slowest_days = 0
+        from_slowest_country = ""
+        from_best_country = ""
+        from_km_traveled = 0
+    if cards_sent:
+        to_number = len(cards_sent)
+        to_max_km = 0
+        to_max_country = ""
+        to_min_km = 10000000
+        to_min_country = ""
+        to_km_traveled = 0
+        c_best_countries = Counter()
 
-    with open(f"template_{lang}.html", 'r', encoding="utf-8") as temp:
+        for c in cards_sent:
+            to_km_traveled += c.kilometers
+            c_best_countries[c.country_code] += 1
+            if c.kilometers > to_max_km:
+                to_max_km = c.kilometers
+                to_max_country = country_alpha_to_str(c.country_code)
+            if c.kilometers < to_min_km:
+                to_min_km = c.kilometers
+                to_min_country = country_alpha_to_str(c.country_code)
+        to_best_country = c_best_countries.most_common(1)[0][0]
+        to_best_country = country_alpha_to_str(to_best_country)
+    else:
+        to_number = 0
+        to_max_km = 0
+        to_max_country = ""
+        to_min_km = 0
+        to_min_country = ""
+        to_km_traveled = 0
+        to_best_country = ""
+    with open(f"template_{lang}.html", "r", encoding="utf-8") as temp:
         html = temp.read()
+
     html = html.replace("$$FROM_NUMBER$$", as_string(from_number))
-    html = html.replace("$$FROM_QUICKEST_DAYS$$",
-                        as_string(from_quickest_days))
+    html = html.replace("$$FROM_QUICKEST_DAYS$$", as_string(from_quickest_days))
     html = html.replace("$$FROM_QUICKEST_COUNTRY$$", from_quickest_country)
     html = html.replace("$$FROM_SLOWEST_DAYS$$", as_string(from_slowest_days))
     html = html.replace("$$FROM_SLOWEST_COUNTRY$$", from_slowest_country)
@@ -144,7 +263,9 @@ def createYearRecap(year, lang, account):
     html = html.replace("$$TO_BEST_COUNTRY$$", to_best_country)
     html = html.replace("$$TO_KM_TRAVELED$$", as_string(to_km_traveled))
     html = html.replace("$$YEAR$$", year)
-    with open(f"./static/recap/{account}_{year}_recap_{lang}.html", 'w', encoding="utf-8") as recap:
+    with open(
+        f"./static/recap/{account}_{year}_recap_{lang}.html", "w", encoding="utf-8"
+    ) as recap:
         recap.write(html)
     print(f"Generated ./static/recap/{account}_{year}_recap_{lang}.html")
 
@@ -166,12 +287,12 @@ def zipHtmlFile(account, path):
     # 创建一个ZIP文件的名称
     zip_filename = f"{path}/{account}_recap.zip"
 
-    with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
         # 使用os.walk遍历目录树
         for root, dirs, files in os.walk(path):
             for filename in files:
                 # 检查文件名是否符合模式
-                if pattern.match(filename) or root.endswith('src'):
+                if pattern.match(filename) or root.endswith("src"):
                     filepath = os.path.join(root, filename)
                     # 计算在ZIP文件中的路径
                     zip_path = os.path.relpath(filepath, start=path)
@@ -224,7 +345,7 @@ def createCalendar(lang, account):
         }},
         """
         series_all += series
-    height = len(year_list)*150+50
+    height = len(year_list) * 150 + 50
     # print("calendar_all:\n", calendar_all)
     # print("series_all:\n", series_all)
     # print("height:\n", height)
@@ -233,7 +354,7 @@ def createCalendar(lang, account):
     for data in a_data:
         # 将时间戳转换为YYYY-MM-DD格式
         timestamp = data[0]
-        date = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d')
+        date = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
 
         # 统计每天的总数
         if date in calendar:
@@ -244,7 +365,7 @@ def createCalendar(lang, account):
     # 将结果转换为列表格式
     calendar_result = [[date, total] for date, total in calendar.items()]
     # print("calendar_result:\n", calendar_result)
-    with open(f"calendar_template.html", 'r', encoding="utf-8") as temp:
+    with open(f"calendar_template.html", "r", encoding="utf-8") as temp:
         html = temp.read()
         html = html.replace("$nickname$", account)
         html = html.replace("$calendar$", calendar_all)
@@ -252,7 +373,9 @@ def createCalendar(lang, account):
         html = html.replace("$height$", str(height))
         html = html.replace("$lang$", str(lang_final))
         html = html.replace("$data$", json.dumps(calendar_result))
-    with open(f"./static/recap/{account}_calendar_{lang}.html", 'w', encoding="utf-8") as f:
+    with open(
+        f"./static/recap/{account}_calendar_{lang}.html", "w", encoding="utf-8"
+    ) as f:
         f.write(html)
     print(f"Generated ./static/recap/{account}_calendar_{lang}.html")
 
@@ -262,14 +385,21 @@ if __name__ == "__main__":
     # directory_to_clean = './static/recap'
     # files_to_keep = ['a.html','.gitkeep']
     # remove_other_files(directory_to_clean, files_to_keep)
-    types = ['received', 'sent']
+    types = ["received", "sent"]
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "language", help="input the language you want to create")
-    parser.add_argument("account", help="input the account you want to create")
+    parser.add_argument("language", help="input the language you want to create")
+    parser.add_argument("account", help="input your account you want to create")
+    parser.add_argument("password", help="input your password")
     options = parser.parse_args()
+
     language = options.language
     account = options.account
+    password = options.password
+
+    Cookie = login(account, password)
+    getUpdateID(account, "sent", Cookie)
+    getUpdateID(account, "received", Cookie)
+    getUserStat(account, Cookie)
 
     def createHtml(lang):
         for type in types:
@@ -289,7 +419,7 @@ if __name__ == "__main__":
         createHtml(language)
 
     # 示例调用
-    directory_to_clean = './data'
-    files_to_keep = ['.gitkeep']
+    directory_to_clean = "./data"
+    files_to_keep = [".gitkeep"]
     remove_other_files(directory_to_clean, files_to_keep)
     zipHtmlFile(account, "./static/recap")
