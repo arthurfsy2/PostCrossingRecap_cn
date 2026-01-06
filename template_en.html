@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Postcrossing $$YEAR$$ Recap</title>
+    <title>Postcrossing {{year}} Recap</title>
     <link rel="stylesheet" type="text/css" href="./src/style.css" />
   </head>
   <body>
@@ -12,7 +12,7 @@
       alt="Postcrossing logo"
       style="width: 20%; height: auto"
     />
-    <h1>$$YEAR$$ 📨</h1>
+    <h1>{{year}} 📨</h1>
 
     <p>
       Welcome to the recap of your Postcrossing journey in the past year! 🌍📬
@@ -20,41 +20,41 @@
 
     <div class="box_received">
       <h2>Joy in the mailbox ✨</h2>
-      <p>This year, you received <strong>$$FROM_NUMBER$$</strong> postcards!</p>
+      <p>This year, you received <strong>{{html_data.from_number}}</strong> postcards!</p>
       <p>
-        🚀 The quickest one took only $$FROM_QUICKEST_DAYS$$ days to arrive from
-        $$FROM_QUICKEST_COUNTRY$$.
+        🚀 The quickest one took only {{html_data.from_quickest_days}} days to arrive from
+        {{html_data.from_quickest_country}}.
       </p>
       <p>
-        🐌 The slowest one travelled $$FROM_SLOWEST_DAYS$$ days from
-        $$FROM_SLOWEST_COUNTRY$$ before reaching your mailbox.
+        🐌 The slowest one travelled {{html_data.from_slowest_days}} days from
+        {{html_data.from_slowest_country}} before reaching your mailbox.
       </p>
-      <p>🗺️ People from $$FROM_BEST_COUNTRY$$ sent you the most cards!</p>
+      <p>🗺️ People from {{html_data.from_best_country}} sent you the most cards!</p>
     </div>
 
     <div class="total_received">
       <h2>Round they go!</h2>
       <p>
         Before reaching your mailbox, postcards travelled
-        <strong>$$FROM_KM_TRAVELED$$</strong> kilometers!
+        <strong>{{html_data.from_km_traveled}}</strong> kilometers!
       </p>
     </div>
 
     <div class="box_sent">
       <h2>Spreading the love 💌</h2>
       <p>
-        During the year, you posted <strong>$$TO_NUMBER$$</strong> postcards!
+        During the year, you posted <strong>{{html_data.to_number}}</strong> postcards!
       </p>
       <p>
-        🛫 The furthest one landed $$TO_MAX_KM$$ kilometers away from you, in
-        $$TO_MAX_COUNTRY$$.
+        🛫 The furthest one landed {{html_data.to_max_km}} kilometers away from you, in
+        {{html_data.to_max_country}}.
       </p>
       <p>
-        🚶 The closest one was only $$TO_MIN_KM$$ kilometers away from you, in
-        $$TO_MIN_COUNTRY$$. Surely it could have been a direct swap 😉
+        🚶 The closest one was only {{html_data.to_min_km}} kilometers away from you, in
+        {{html_data.to_min_country}}. Surely it could have been a direct swap 😉
       </p>
       <p>
-        🌏️ People from $$TO_BEST_COUNTRY$$ received the most cards from you!
+        🌏️ People from {{html_data.to_best_country}} received the most cards from you!
       </p>
     </div>
 
@@ -62,7 +62,7 @@
       <h2>All around the world!</h2>
       <p>
         Beginning their journey from your home, your postcards travelled
-        <strong>$$TO_KM_TRAVELED$$</strong> kilometers!
+        <strong>{{html_data.to_km_traveled}}</strong> kilometers!
       </p>
     </div>
 

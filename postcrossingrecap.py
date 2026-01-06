@@ -10,6 +10,20 @@ import re
 from jinja2 import Template
 import requests
 
+BIN = os.path.dirname(os.path.realpath(__file__))
+
+
+def read_template_file(lang):
+    # 读取模板
+    with open(
+        os.path.join(BIN, f"template_{lang}.html"),
+        "r",
+        encoding="utf-8",
+    ) as f:
+        template_lang = Template(f.read())
+    return template_lang
+
+
 # Log in with your account and password to obtain cookies
 
 
@@ -244,25 +258,28 @@ def createYearRecap(year, lang, account):
         to_min_country = ""
         to_km_traveled = 0
         to_best_country = ""
+    template_lang = read_template_file(lang)
     with open(f"template_{lang}.html", "r", encoding="utf-8") as temp:
         html = temp.read()
+    html_data = {
+        "year": year,
+        "from_number": as_string(from_number),
+        "from_quickest_days": as_string(from_quickest_days),
+        "from_quickest_country": from_quickest_country,
+        "from_slowest_days": as_string(from_slowest_days),
+        "from_slowest_country": from_slowest_country,
+        "from_best_country": from_best_country,
+        "from_km_traveled": as_string(from_km_traveled),
+        "to_number": as_string(to_number),
+        "to_max_km": as_string(to_max_km),
+        "to_max_country": to_max_country,
+        "to_min_km": as_string(to_min_km),
+        "to_min_country": to_min_country,
+        "to_best_country": to_best_country,
+        "to_km_traveled": as_string(to_km_traveled),
+    }
+    html = template_lang.render(year=year, html_data=html_data)
 
-    html = html.replace("$$FROM_NUMBER$$", as_string(from_number))
-    html = html.replace("$$FROM_QUICKEST_DAYS$$", as_string(from_quickest_days))
-    html = html.replace("$$FROM_QUICKEST_COUNTRY$$", from_quickest_country)
-    html = html.replace("$$FROM_SLOWEST_DAYS$$", as_string(from_slowest_days))
-    html = html.replace("$$FROM_SLOWEST_COUNTRY$$", from_slowest_country)
-    html = html.replace("$$FROM_BEST_COUNTRY$$", from_best_country)
-    html = html.replace("$$FROM_KM_TRAVELED$$", as_string(from_km_traveled))
-
-    html = html.replace("$$TO_NUMBER$$", as_string(to_number))
-    html = html.replace("$$TO_MAX_KM$$", as_string(to_max_km))
-    html = html.replace("$$TO_MAX_COUNTRY$$", to_max_country)
-    html = html.replace("$$TO_MIN_KM$$", as_string(to_min_km))
-    html = html.replace("$$TO_MIN_COUNTRY$$", to_min_country)
-    html = html.replace("$$TO_BEST_COUNTRY$$", to_best_country)
-    html = html.replace("$$TO_KM_TRAVELED$$", as_string(to_km_traveled))
-    html = html.replace("$$YEAR$$", year)
     with open(
         f"./static/recap/{account}_{year}_recap_{lang}.html", "w", encoding="utf-8"
     ) as recap:
